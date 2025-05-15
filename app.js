@@ -51,6 +51,10 @@ app.use(function(err, req, res, _next) {
   logService.error(req.body.user.ssn);            // ✅
   log.debug(JSON.stringify(req.body));            // ✅
 
+  logger.info(req.body);      // ❌
+  console.log(res.headers);   // ❌
+  logService.debug(req.query) // ❌
+
 });
 
 module.exports = app;

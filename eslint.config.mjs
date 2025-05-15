@@ -2,6 +2,7 @@ import js from "@eslint/js";
 import globals from "globals";
 import { defineConfig } from "eslint/config";
 import noPiiLogging from './eslint-rules/no-pii-logging.js'
+import noPayloadLogging from './eslint-rules/no-payload-logging.js';
 
 
 export default defineConfig([
@@ -11,6 +12,7 @@ export default defineConfig([
       local: {
         rules: {
           'no-pii-logging': noPiiLogging,
+          'no-payload-logging': noPayloadLogging,
         },
       },
     },
@@ -23,6 +25,7 @@ export default defineConfig([
       'no-unused-vars': ['warn', { argsIgnorePattern: '^_' }],
       // PII rules
       'local/no-pii-logging': 'error',
+      'local/no-payload-logging': 'error',
     },
   },
   { files: ["**/*.{js,mjs,cjs}"], languageOptions: { globals: globals.browser } },
