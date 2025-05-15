@@ -21,6 +21,7 @@ export default defineConfig([
 
       // Ignore unused middleware arguments like `next`
       'no-unused-vars': ['warn', { argsIgnorePattern: '^_' }],
+      // PII rules
       'local/no-pii-logging': 'error',
     },
   },

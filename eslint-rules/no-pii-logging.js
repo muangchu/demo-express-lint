@@ -1,17 +1,18 @@
-// eslint-rules/no-pii-logging.js
-export default {
+// eslint-rules/no-pii-logging.js (CommonJS version)
+module.exports = {
   meta: {
     type: 'problem',
     docs: {
-      description: 'Disallow logging of potential PII',
+      description: 'Disallow logging of potential PII or credentials',
     },
     messages: {
-      piiLogging: 'Avoid logging potential PII: "{{ identifier }}"',
+      piiLogging: 'Avoid logging potential PII or credentials: "{{ identifier }}"',
     },
   },
 
   create(context) {
     const piiFields = ['email', 'password', 'ssn', 'dob', 'phone', 'address', 'name', 'user'];
+    const logObjects = ['console', 'logger', 'logService', 'log', 'loggerService'];
 
     function checkPII(node, reportNode) {
       if (!node) return;
@@ -26,7 +27,7 @@ export default {
             data: { identifier: name },
           });
         }
-        checkPII(node.object, reportNode); // Recursive check for nested object
+        checkPII(node.object, reportNode);
       }
 
       if (node.type === 'Literal' && typeof node.value === 'string') {
@@ -44,12 +45,14 @@ export default {
 
     return {
       CallExpression(node) {
-        const isConsole =
-          node.callee.type === 'MemberExpression' &&
-          node.callee.object.name === 'console' &&
-          ['log', 'info', 'warn', 'error'].includes(node.callee.property.name);
+        const callee = node.callee;
 
-        if (!isConsole) return;
+        const isLoggingCall =
+          callee.type === 'MemberExpression' &&
+          logObjects.includes(callee.object.name || '') &&
+          ['log', 'info', 'warn', 'error', 'debug', 'trace'].includes(callee.property.name);
+
+        if (!isLoggingCall) return;
 
         for (const arg of node.arguments) {
           if (arg.type === 'MemberExpression') {
@@ -57,7 +60,6 @@ export default {
           }
 
           if (arg.type === 'CallExpression') {
-            // Handle JSON.stringify(req.body)
             const callee = arg.callee;
             if (
               callee.type === 'MemberExpression' &&
@@ -81,4 +83,4 @@ export default {
       },
     };
   },
-};
+}
