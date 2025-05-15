@@ -1,0 +1,100 @@
+[
+  {
+    "filePath": "/Users/panuwat/Demo/demo-express/app.js",
+    "messages": [
+      {
+        "ruleId": "local/no-pii-logging",
+        "severity": 2,
+        "message": "Avoid logging potential PII field 'email'.",
+        "line": 39,
+        "column": 3,
+        "nodeType": "CallExpression",
+        "messageId": "avoidLoggingPII",
+        "endLine": 39,
+        "endColumn": 26
+      },
+      {
+        "ruleId": "no-console",
+        "severity": 1,
+        "message": "Unexpected console statement.",
+        "line": 39,
+        "column": 3,
+        "nodeType": "MemberExpression",
+        "messageId": "unexpected",
+        "endLine": 39,
+        "endColumn": 14,
+        "suggestions": [
+          {
+            "fix": { "range": [1051, 1075], "text": "" },
+            "messageId": "removeConsole",
+            "data": { "propertyName": "log" },
+            "desc": "Remove the console.log()."
+          }
+        ]
+      },
+      {
+        "ruleId": "no-undef",
+        "severity": 2,
+        "message": "'user' is not defined.",
+        "line": 39,
+        "column": 15,
+        "nodeType": "Identifier",
+        "messageId": "undef",
+        "endLine": 39,
+        "endColumn": 19
+      }
+    ],
+    "suppressedMessages": [],
+    "errorCount": 2,
+    "fatalErrorCount": 0,
+    "warningCount": 1,
+    "fixableErrorCount": 0,
+    "fixableWarningCount": 0,
+    "source": "var createError = require('http-errors');\nvar express = require('express');\nvar path = require('path');\nvar cookieParser = require('cookie-parser');\nvar logger = require('morgan');\n\nvar indexRouter = require('./routes/index');\nvar usersRouter = require('./routes/users');\n\nvar app = express();\n\n// view engine setup\napp.set('views', path.join(__dirname, 'views'));\napp.set('view engine', 'jade');\n\napp.use(logger('dev'));\napp.use(express.json());\napp.use(express.urlencoded({ extended: false }));\napp.use(cookieParser());\napp.use(express.static(path.join(__dirname, 'public')));\n\napp.use('/', indexRouter);\napp.use('/users', usersRouter);\n\n// catch 404 and forward to error handler\napp.use(function(req, res, next) {\n  next(createError(404));\n});\n\n// error handler\napp.use(function(err, req, res, _next) {\n  // set locals, only providing error in development\n  res.locals.message = err.message;\n  res.locals.error = req.app.get('env') === 'development' ? err : {};\n\n  // render the error page\n  res.status(err.status || 500);\n  res.render('error');\n  console.log(user.email); // should trigger warning\n});\n\nmodule.exports = app;\n",
+    "usedDeprecatedRules": []
+  },
+  {
+    "filePath": "/Users/panuwat/Demo/demo-express/eslint-rules/no-pii-logging.js",
+    "messages": [],
+    "suppressedMessages": [],
+    "errorCount": 0,
+    "fatalErrorCount": 0,
+    "warningCount": 0,
+    "fixableErrorCount": 0,
+    "fixableWarningCount": 0,
+    "usedDeprecatedRules": []
+  },
+  {
+    "filePath": "/Users/panuwat/Demo/demo-express/eslint.config.mjs",
+    "messages": [],
+    "suppressedMessages": [],
+    "errorCount": 0,
+    "fatalErrorCount": 0,
+    "warningCount": 0,
+    "fixableErrorCount": 0,
+    "fixableWarningCount": 0,
+    "usedDeprecatedRules": []
+  },
+  {
+    "filePath": "/Users/panuwat/Demo/demo-express/routes/index.js",
+    "messages": [],
+    "suppressedMessages": [],
+    "errorCount": 0,
+    "fatalErrorCount": 0,
+    "warningCount": 0,
+    "fixableErrorCount": 0,
+    "fixableWarningCount": 0,
+    "usedDeprecatedRules": []
+  },
+  {
+    "filePath": "/Users/panuwat/Demo/demo-express/routes/users.js",
+    "messages": [],
+    "suppressedMessages": [],
+    "errorCount": 0,
+    "fatalErrorCount": 0,
+    "warningCount": 0,
+    "fixableErrorCount": 0,
+    "fixableWarningCount": 0,
+    "usedDeprecatedRules": []
+  }
+]
