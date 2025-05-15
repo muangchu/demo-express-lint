@@ -1,18 +1,32 @@
-// eslint-rules/no-pii-logging.js (CommonJS version)
+// eslint-rules/no-pii-logging.js
 module.exports = {
   meta: {
     type: 'problem',
     docs: {
       description: 'Disallow logging of potential PII or credentials',
     },
+    schema: [
+      {
+        type: 'object',
+        properties: {
+          logObjects: {
+            type: 'array',
+            items: { type: 'string' },
+          },
+        },
+        additionalProperties: false,
+      },
+    ],
+    fixable: 'code',
     messages: {
       piiLogging: 'Avoid logging potential PII or credentials: "{{ identifier }}"',
     },
   },
 
   create(context) {
+    const options = context.options[0] || {};
     const piiFields = ['email', 'password', 'ssn', 'dob', 'phone', 'address', 'name', 'user'];
-    const logObjects = ['console', 'logger', 'logService', 'log', 'loggerService'];
+    const logObjects = options.logObjects || ['console', 'logger', 'logService'];
 
     function checkPII(node, reportNode) {
       if (!node) return;
@@ -25,6 +39,7 @@ module.exports = {
             node: reportNode || prop,
             messageId: 'piiLogging',
             data: { identifier: name },
+            fix: fixer => fixer.replaceText(reportNode || node, "'[REDACTED]'"),
           });
         }
         checkPII(node.object, reportNode);
@@ -37,6 +52,7 @@ module.exports = {
               node: reportNode || node,
               messageId: 'piiLogging',
               data: { identifier: field },
+              fix: fixer => fixer.replaceText(reportNode || node, "'[REDACTED]'"),
             });
           }
         }
@@ -56,7 +72,7 @@ module.exports = {
 
         for (const arg of node.arguments) {
           if (arg.type === 'MemberExpression') {
-            checkPII(arg);
+            checkPII(arg, arg);
           }
 
           if (arg.type === 'CallExpression') {
@@ -66,7 +82,7 @@ module.exports = {
               callee.object.name === 'JSON' &&
               callee.property.name === 'stringify'
             ) {
-              checkPII(arg.arguments[0]);
+              checkPII(arg.arguments[0], arg);
             }
           }
 

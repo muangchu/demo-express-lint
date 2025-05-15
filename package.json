@@ -5,7 +5,9 @@
   "scripts": {
     "start": "node ./bin/www",
     "lint": "eslint . --config eslint.config.mjs",
-    "lint:report": "eslint . -f json -o eslint-report.json"
+    "lint:report": "eslint . --format json -o eslint-report.json",
+    "lint:fix-dry": "eslint . --fix-dry-run --format stylish > pii-fix.patch",
+    "lint:fix": "eslint . --fix"
   },
   "dependencies": {
     "cookie-parser": "~1.4.4",
