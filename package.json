@@ -3,7 +3,9 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
-    "start": "node ./bin/www"
+    "start": "node ./bin/www",
+    "lint": "eslint . --config eslint.config.mjs",
+    "lint:report": "eslint . -f json -o eslint-report.json"
   },
   "dependencies": {
     "cookie-parser": "~1.4.4",
