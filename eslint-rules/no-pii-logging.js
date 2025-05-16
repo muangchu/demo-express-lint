@@ -1,4 +1,6 @@
-const SENSITIVE_KEYS = ['email', 'password', 'ssn', 'social', 'phone', 'address', 'dob', 'creditCard'];
+const SENSITIVE_KEYS = ['email', 'password', 'ssn', 'social', 'phone', 'address', 'dob', 'creditCard', 
+  'id_no'
+];
 
 function isSensitiveKey(name) {
   return name && SENSITIVE_KEYS.includes(name.toLowerCase());
