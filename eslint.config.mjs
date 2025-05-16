@@ -3,6 +3,7 @@ import globals from "globals";
 import js from "@eslint/js";
 
 import noBodyJsonLogging from "./eslint-rules/no-body-json-logging.js";
+import noObjectLogging from "./eslint-rules/no-object-logging.js";
 import noPiiLogging from './eslint-rules/no-pii-logging.js'
 import noRequestLogging from "./eslint-rules/no-request-logging.js";
 import noResponseLogging from "./eslint-rules/no-response-logging.js";
@@ -23,6 +24,7 @@ export default defineConfig([
       local: {
         rules: {
           'no-body-json-logging': noBodyJsonLogging,
+          'no-object-logging': noObjectLogging,
           'no-pii-logging': noPiiLogging,
           'no-request-logging': noRequestLogging,
           'no-response-logging': noResponseLogging,
@@ -31,6 +33,7 @@ export default defineConfig([
     },
     rules: {
       'local/no-body-json-logging': 'error',
+      'local/no-object-logging': 'error',
       'local/no-pii-logging': 'error',
       'local/no-request-logging': 'error',
       'local/no-response-logging': 'error',
