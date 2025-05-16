@@ -1,21 +1,33 @@
-// eslint/rules/no-pii-logging.js
-
 const SENSITIVE_KEYS = ['email', 'password', 'ssn', 'social', 'phone', 'address', 'dob', 'creditCard'];
 
 function isSensitiveKey(name) {
   return name && SENSITIVE_KEYS.includes(name.toLowerCase());
 }
 
+// Recursive check for logger-like object (supports this.logger, logger, log, console)
+function isLoggerObject(expr) {
+  if (!expr) return false;
+
+  if (expr.type === 'Identifier') {
+    return ['logger', 'log', 'console'].includes(expr.name);
+  }
+
+  if (
+    expr.type === 'MemberExpression' &&
+    expr.object.type === 'ThisExpression' &&
+    ['logger', 'log'].includes(expr.property.name)
+  ) {
+    return true;
+  }
+
+  return false;
+}
+
 function isLogger(node) {
   return (
     node &&
     node.type === 'MemberExpression' &&
-    (
-      // this.logger.info
-      (node.object.type === 'ThisExpression' && node.property.name === 'logger') ||
-      // logger.info, log.debug, console.warn, etc.
-      (['logger', 'log', 'console'].includes(node.object.name))
-    ) &&
+    isLoggerObject(node.object) &&
     ['info', 'debug', 'log', 'warn', 'error'].includes(node.property.name)
   );
 }
@@ -37,7 +49,7 @@ export default {
         if (!isLogger(node.callee)) return;
 
         for (const arg of node.arguments) {
-          // Case 1: { email: req.body.email }
+          // Object with sensitive keys: { email: req.body.email }
           if (arg.type === 'ObjectExpression') {
             for (const prop of arg.properties) {
               if (
@@ -55,7 +67,7 @@ export default {
             }
           }
 
-          // Case 2: "User password: hidden"
+          // Literal string: "User password: hidden"
           if (arg.type === 'Literal' && typeof arg.value === 'string') {
             for (const keyword of SENSITIVE_KEYS) {
               if (arg.value.toLowerCase().includes(keyword.toLowerCase())) {
@@ -69,7 +81,7 @@ export default {
             }
           }
 
-          // Case 3: req.body.email, user.phone
+          // Member expression: req.body.email, user.phone
           if (
             arg.type === 'MemberExpression' &&
             arg.property.type === 'Identifier' &&
@@ -82,7 +94,7 @@ export default {
             });
           }
 
-          // Case 4: Template literals: `User phone: ${user.phone}`
+          // Template literal: `User phone: ${user.phone}`
           if (arg.type === 'TemplateLiteral') {
             for (const expr of arg.expressions) {
               if (

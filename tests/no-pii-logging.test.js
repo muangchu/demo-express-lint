@@ -1,5 +1,3 @@
-//valid
-
 
 //invalid
 logger.info({ email: user.email });
@@ -13,3 +11,13 @@ this.logger.debug(req.body.phone);                    // member expression
 logger.debug(req.body.phone);                         // member expression
 log.debug(req.body.phone);                            // member expression
 logger.info(`User phone: ${user.phone}`);             // template literal
+
+
+this.logger.info({ email: req.body.email });         // ✅
+this.logger.debug("Password is hidden");             // ✅
+this.logger.info(user.phone);                        // ✅
+this.logger.warn(`User address: ${user.address}`);   // ✅
+logger.info("My SSN: 123");                          // ✅
+
+//valid
+
