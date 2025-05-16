@@ -2,9 +2,9 @@ import { defineConfig } from "eslint/config";
 import globals from "globals";
 import js from "@eslint/js";
 
-import noPiiLogging from './eslint-rules/no-pii-logging.js'
-import noPayloadLogging from './eslint-rules/no-payload-logging.js';
 import noBodyJsonLogging from "./eslint-rules/no-body-json-logging.js";
+import noPiiLogging from './eslint-rules/no-pii-logging.js'
+import noResponseLogging from "./eslint-rules/no-response-logging.js";
 
 export default defineConfig([
 	{ files: ["**/*.js"], languageOptions: { globals: globals.browser } },
@@ -23,14 +23,14 @@ export default defineConfig([
         rules: {
           'no-body-json-logging': noBodyJsonLogging,
           'no-pii-logging': noPiiLogging,
-          'no-payload-logging': noPayloadLogging,
+          'no-response-logging': noResponseLogging,
         },
       },
     },
     rules: {
       'local/no-body-json-logging': 'error',
       'local/no-pii-logging': 'error',
-      'local/no-payload-logging': 'off',
+      'local/no-response-logging': 'error',
     },
   },
 ]);
