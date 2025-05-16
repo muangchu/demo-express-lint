@@ -39,12 +39,12 @@ app.use(function(err, req, res, _next) {
 
   console.log(car); // pass
 
-  // console.log(user.email);                // ✅ Direct logging of sensitive field
-  // console.log(req.body.user.ssn);         // ✅ Deep nested field detection
-  // console.log(`User: ${user.phone}`);     // ✅ Template literal parsing
-  // console.log(JSON.stringify(req.body));  // ✅ Flags PII field in stringified obj
-  // console.error(user.password)            // ✅ Password field is matched
-  // console.log("name: " + user.name)       // ✅ MemberExpression + string concatenation handled via traversal
+  console.log(user.email);                // ✅ Direct logging of sensitive field
+  console.log(req.body.user.ssn);         // ✅ Deep nested field detection
+  console.log(`User: ${user.phone}`);     // ✅ Template literal parsing
+  console.log(JSON.stringify(req.body));  // ✅ Flags PII field in stringified obj
+  console.error(user.password)            // ✅ Password field is matched
+  console.log("name: " + user.name)       // ✅ MemberExpression + string concatenation handled via traversal
 
   console.log(user.email);                        // ✅
   logger.info(`User phone: ${user.phone}`);       // ✅

@@ -1,102 +1,118 @@
-// eslint-rules/no-pii-logging.js
-module.exports = {
+// eslint/rules/no-pii-logging.js
+
+const SENSITIVE_KEYS = ['email', 'password', 'ssn', 'social', 'phone', 'address', 'dob', 'creditCard'];
+
+function isSensitiveKey(name) {
+  return name && SENSITIVE_KEYS.includes(name.toLowerCase());
+}
+
+function isLogger(node) {
+  return (
+    node &&
+    node.type === 'MemberExpression' &&
+    (
+      // this.logger.info
+      (node.object.type === 'ThisExpression' && node.property.name === 'logger') ||
+      // logger.info, log.debug, console.warn, etc.
+      (['logger', 'log', 'console'].includes(node.object.name))
+    ) &&
+    ['info', 'debug', 'log', 'warn', 'error'].includes(node.property.name)
+  );
+}
+
+export default {
   meta: {
     type: 'problem',
     docs: {
-      description: 'Disallow logging of potential PII or credentials',
+      description: 'Disallow logging of PII (Personally Identifiable Information)',
     },
-    schema: [
-      {
-        type: 'object',
-        properties: {
-          logObjects: {
-            type: 'array',
-            items: { type: 'string' },
-          },
-        },
-        additionalProperties: false,
-      },
-    ],
-    fixable: 'code',
     messages: {
-      piiLogging: 'Avoid logging potential PII or credentials: "{{ identifier }}"',
+      piiDetected: 'Avoid logging sensitive data such as "{{ key }}".',
     },
   },
 
   create(context) {
-    const options = context.options[0] || {};
-    const piiFields = ['email', 'password', 'ssn', 'dob', 'phone', 'address', 'name', 'user'];
-    const logObjects = options.logObjects || ['console', 'logger', 'logService'];
-
-    function checkPII(node, reportNode) {
-      if (!node) return;
-
-      if (node.type === 'MemberExpression') {
-        const prop = node.property;
-        const name = prop.name || prop.value;
-        if (piiFields.includes(name)) {
-          context.report({
-            node: reportNode || prop,
-            messageId: 'piiLogging',
-            data: { identifier: name },
-            fix: fixer => fixer.replaceText(reportNode || node, "'[REDACTED]'"),
-          });
-        }
-        checkPII(node.object, reportNode);
-      }
-
-      if (node.type === 'Literal' && typeof node.value === 'string') {
-        for (const field of piiFields) {
-          if (node.value.includes(field)) {
-            context.report({
-              node: reportNode || node,
-              messageId: 'piiLogging',
-              data: { identifier: field },
-              fix: fixer => fixer.replaceText(reportNode || node, "'[REDACTED]'"),
-            });
-          }
-        }
-      }
-    }
-
     return {
       CallExpression(node) {
-        const callee = node.callee;
-
-        const isLoggingCall =
-          callee.type === 'MemberExpression' &&
-          logObjects.includes(callee.object.name || '') &&
-          ['log', 'info', 'warn', 'error', 'debug', 'trace'].includes(callee.property.name);
-
-        if (!isLoggingCall) return;
+        if (!isLogger(node.callee)) return;
 
         for (const arg of node.arguments) {
-          if (arg.type === 'MemberExpression') {
-            checkPII(arg, arg);
-          }
-
-          if (arg.type === 'CallExpression') {
-            const callee = arg.callee;
-            if (
-              callee.type === 'MemberExpression' &&
-              callee.object.name === 'JSON' &&
-              callee.property.name === 'stringify'
-            ) {
-              checkPII(arg.arguments[0], arg);
+          // Case 1: { email: req.body.email }
+          if (arg.type === 'ObjectExpression') {
+            for (const prop of arg.properties) {
+              if (
+                prop.key &&
+                ((prop.key.type === 'Identifier' && isSensitiveKey(prop.key.name)) ||
+                 (prop.key.type === 'Literal' && isSensitiveKey(String(prop.key.value)))
+                )
+              ) {
+                context.report({
+                  node: prop.key,
+                  messageId: 'piiDetected',
+                  data: { key: prop.key.name || prop.key.value },
+                });
+              }
             }
           }
 
+          // Case 2: "User password: hidden"
+          if (arg.type === 'Literal' && typeof arg.value === 'string') {
+            for (const keyword of SENSITIVE_KEYS) {
+              if (arg.value.toLowerCase().includes(keyword.toLowerCase())) {
+                context.report({
+                  node: arg,
+                  messageId: 'piiDetected',
+                  data: { key: keyword },
+                });
+                break;
+              }
+            }
+          }
+
+          // Case 3: req.body.email, user.phone
+          if (
+            arg.type === 'MemberExpression' &&
+            arg.property.type === 'Identifier' &&
+            isSensitiveKey(arg.property.name)
+          ) {
+            context.report({
+              node: arg.property,
+              messageId: 'piiDetected',
+              data: { key: arg.property.name },
+            });
+          }
+
+          // Case 4: Template literals: `User phone: ${user.phone}`
           if (arg.type === 'TemplateLiteral') {
             for (const expr of arg.expressions) {
-              checkPII(expr, expr);
+              if (
+                expr.type === 'MemberExpression' &&
+                expr.property.type === 'Identifier' &&
+                isSensitiveKey(expr.property.name)
+              ) {
+                context.report({
+                  node: expr.property,
+                  messageId: 'piiDetected',
+                  data: { key: expr.property.name },
+                });
+              }
             }
-          }
 
-          if (arg.type === 'Literal') {
-            checkPII(arg, arg);
+            for (const quasi of arg.quasis) {
+              for (const keyword of SENSITIVE_KEYS) {
+                if (quasi.value.raw.toLowerCase().includes(keyword.toLowerCase())) {
+                  context.report({
+                    node: quasi,
+                    messageId: 'piiDetected',
+                    data: { key: keyword },
+                  });
+                  break;
+                }
+              }
+            }
           }
         }
       },
     };
   },
-}
+};

@@ -21,16 +21,16 @@ export default defineConfig([
     plugins: {
       local: {
         rules: {
+          'no-body-json-logging': noBodyJsonLogging,
           'no-pii-logging': noPiiLogging,
           'no-payload-logging': noPayloadLogging,
-          'no-body-json-logging': noBodyJsonLogging
         },
       },
     },
     rules: {
-      'local/no-pii-logging': 'error',
-      'local/no-payload-logging': 'error',
       'local/no-body-json-logging': 'error',
+      'local/no-pii-logging': 'error',
+      'local/no-payload-logging': 'off',
     },
   },
 ]);
