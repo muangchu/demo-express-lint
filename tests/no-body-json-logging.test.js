@@ -6,6 +6,12 @@ log.warn(JSON.stringify(req.body));
 log.debug(JSON.stringify(req.body));
 log.debug('Request: ' + JSON.stringify(req.body));
 
+log.debug(JSON.stringify(req.body));                                 // direct
+log.debug('Request: ' + JSON.stringify(req.body));                   // binary expression
+log.debug(`Request body: ${JSON.stringify(req.body)}`);              // template literal
+this.logger.info('POST /user', JSON.stringify(req.body));           // direct on this.logger
+
+
 this.logger.info(req.body);
 logger.warn(req.body);
 

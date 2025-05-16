@@ -1,53 +1,73 @@
-// eslint/rules/no-body-json-logging.js
-
 export default {
   meta: {
     type: 'problem',
     docs: {
-      description: 'Disallow logging of req.body directly or via JSON.stringify',
+      description: 'Disallow logging JSON.stringify(req.body)',
     },
     messages: {
-      noLoggingReqBody: 'Avoid logging `req.body` directly or via JSON.stringify – may expose sensitive data.',
+      noJsonLogging: 'Avoid logging req.body via JSON.stringify (may expose sensitive data).',
     },
   },
+
   create(context) {
+    function isLoggerCall(node) {
+      const callee = node.callee;
+      if (callee.type !== 'MemberExpression') return false;
+
+      const method = callee.property?.name;
+      if (!['debug', 'info', 'warn', 'error', 'log'].includes(method)) return false;
+
+      if (callee.object.type === 'Identifier') {
+        return ['log', 'logger', 'console'].includes(callee.object.name);
+      }
+
+      if (
+        callee.object.type === 'MemberExpression' &&
+        callee.object.object.type === 'ThisExpression' &&
+        ['logger', 'log'].includes(callee.object.property.name)
+      ) {
+        return true;
+      }
+
+      return false;
+    }
+
+    function isJsonStringifyOnReqBody(node) {
+      return (
+        node?.type === 'CallExpression' &&
+        node.callee.type === 'MemberExpression' &&
+        node.callee.object.name === 'JSON' &&
+        node.callee.property.name === 'stringify' &&
+        node.arguments.length === 1 &&
+        node.arguments[0].type === 'MemberExpression' &&
+        node.arguments[0].object.name === 'req' &&
+        node.arguments[0].property.name === 'body'
+      );
+    }
+
     return {
       CallExpression(node) {
-        // Match: any logger method like debug, info, warn, error
-        if (
-          node.callee.type === 'MemberExpression' &&
-          ['debug', 'info', 'log', 'warn', 'error'].includes(node.callee.property.name)
-        ) {
-          const args = node.arguments || [];
+        if (!isLoggerCall(node)) return;
 
-          for (const arg of args) {
-            // Match: this.logger.info(req.body) (direct logging)
-            if (
-              arg.type === 'MemberExpression' &&
-              arg.object.name === 'req' &&
-              arg.property.name === 'body'
-            ) {
-              context.report({
-                node: arg,
-                messageId: 'noLoggingReqBody',
-              });
+        for (const arg of node.arguments) {
+          if (isJsonStringifyOnReqBody(arg)) {
+            context.report({ node: arg, messageId: 'noJsonLogging' });
+            continue;
+          }
+
+          if (arg.type === 'BinaryExpression') {
+            if (isJsonStringifyOnReqBody(arg.left) || isJsonStringifyOnReqBody(arg.right)) {
+              context.report({ node: arg, messageId: 'noJsonLogging' });
+              continue;
             }
+          }
 
-            // Match: this.logger.info(JSON.stringify(req.body)) (stringified logging)
-            if (
-              arg.type === 'CallExpression' &&
-              arg.callee.type === 'MemberExpression' &&
-              arg.callee.object.name === 'JSON' &&
-              arg.callee.property.name === 'stringify' &&
-              arg.arguments.length > 0 &&
-              arg.arguments[0].type === 'MemberExpression' &&
-              arg.arguments[0].object.name === 'req' &&
-              arg.arguments[0].property.name === 'body'
-            ) {
-              context.report({
-                node: arg,
-                messageId: 'noLoggingReqBody',
-              });
+          if (arg.type === 'TemplateLiteral') {
+            for (const expr of arg.expressions) {
+              if (isJsonStringifyOnReqBody(expr)) {
+                context.report({ node: expr, messageId: 'noJsonLogging' });
+                break;
+              }
             }
           }
         }
