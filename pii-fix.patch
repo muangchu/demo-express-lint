@@ -1,0 +1,15 @@
+
+/Users/panuwat/Demo/demo-express/app.js
+  40:3   warning  Unexpected console statement                                                    no-console
+  40:15  error    'car' is not defined                                                            no-undef
+  49:3   warning  Unexpected console statement                                                    no-console
+  51:3   error    'logService' is not defined                                                     no-undef
+  52:3   error    'log' is not defined                                                            no-undef
+  54:15  error    Avoid logging full payloads like "req.body" as it may expose sensitive data     local/no-payload-logging
+  55:3   warning  Unexpected console statement                                                    no-console
+  55:15  error    Avoid logging full payloads like "res.headers" as it may expose sensitive data  local/no-payload-logging
+  56:3   error    'logService' is not defined                                                     no-undef
+  56:20  error    Avoid logging full payloads like "req.query" as it may expose sensitive data    local/no-payload-logging
+
+✖ 10 problems (7 errors, 3 warnings)
+
